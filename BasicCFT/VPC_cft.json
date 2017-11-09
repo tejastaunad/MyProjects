@@ -1,0 +1,207 @@
+{  
+   "Resources":{  
+      "tejVPCcf":{  
+         "Type":"AWS::EC2::VPC",
+         "Properties":{  
+            "CidrBlock":"10.0.0.0/16",
+            "EnableDnsSupport":"true",
+            "EnableDnsHostnames":"true",
+            "InstanceTenancy":"default",
+            "Tags":[  
+               {  
+                  "Key":"Name",
+                  "Value":"tej_VPCcf"
+               },
+               {  
+                  "Key":"Owner",
+                  "Value":"Tejas"
+               }
+            ]
+         }
+      },
+      "TejasCfIGateway":{  
+         "Type":"AWS::EC2::InternetGateway",
+         "Properties":{  
+            "Tags":[  
+               {  
+                  "Key":"Name",
+                  "Value":"tej_VPCcf"
+               },
+               {  
+                  "Key":"Owner",
+                  "Value":"Tejas"
+               }
+            ]
+         }
+      },
+      "tejAttachGateway":{  
+         "Type":"AWS::EC2::VPCGatewayAttachment",
+         "Properties":{  
+            "VpcId":{  
+               "Ref":"tejVPCcf"
+            },
+            "InternetGatewayId":{  
+               "Ref":"TejasCfIGateway"
+            }
+         }
+      },
+      "tejaspubSubnet":{  
+         "Type":"AWS::EC2::Subnet",
+         "Properties":{  
+            "VpcId":{  
+               "Ref":"tejVPCcf"
+            },
+            "CidrBlock":"10.0.1.0/24",
+            "AvailabilityZone":"us-west-2a",
+            "Tags":[  
+               {  
+                  "Key":"Name",
+                  "Value":"tej_VPCcf"
+               },
+               {  
+                  "Key":"Owner",
+                  "Value":"Tejas",
+                  "project":"testing"
+               }
+            ]
+         }
+      },
+      "tejasprivateSubnet":{  
+         "Type":"AWS::EC2::Subnet",
+         "Properties":{  
+            "VpcId":{  
+               "Ref":"tejVPCcf"
+            },
+            "CidrBlock":"10.0.2.0/24",
+            "AvailabilityZone":"us-west-2b",
+            "Tags":[  
+               {  
+                  "Key":"Name",
+                  "Value":"tej_VPCcf"
+               },
+               {  
+                  "Key":"Owner",
+                  "Value":"Tejas"
+               }
+            ]
+         }
+      },
+      "tejaspublRouteTable":{  
+         "Type":"AWS::EC2::RouteTable",
+         "Properties":{  
+            "VpcId":{  
+               "Ref":"tejVPCcf"
+            },
+            "Tags":[  
+               {  
+                  "Key":"Name",
+                  "Value":"tej_VPCcf"
+               },
+               {  
+                  "Key":"Owner",
+                  "Value":"Tejas"
+               }
+            ]
+         }
+      },
+      "tejasprivRouteTable":{  
+         "Type":"AWS::EC2::RouteTable",
+         "Properties":{  
+            "VpcId":{  
+               "Ref":"tejVPCcf"
+            },
+            "Tags":[  
+               {  
+                  "Key":"Name",
+                  "Value":"tej_VPCcf"
+               },
+               {  
+                  "Key":"Owner",
+                  "Value":"Tejas H V"
+               }
+            ]
+         }
+      },
+      "tejaspublSubnetRouteTableAssociation":{  
+         "Type":"AWS::EC2::SubnetRouteTableAssociation",
+         "Properties":{  
+            "SubnetId":{  
+               "Ref":"tejaspubSubnet"
+            },
+            "RouteTableId":{  
+               "Ref":"tejaspublRouteTable"
+            }
+         }
+      },
+      "tejasprivSubnetRouteTableAssociation":{  
+         "Type":"AWS::EC2::SubnetRouteTableAssociation",
+         "Properties":{  
+            "SubnetId":{  
+               "Ref":"tejasprivateSubnet"
+            },
+            "RouteTableId":{  
+               "Ref":"tejasprivRouteTable"
+            }
+         }
+      },
+      "myRoutepubli" : {
+         "Type" : "AWS::EC2::Route",
+         "Properties" : {
+            "RouteTableId" : { "Ref" : "tejaspublRouteTable" },
+            "DestinationCidrBlock" : "0.0.0.0/0",
+            "GatewayId" : { "Ref" : "TejasCfIGateway" }
+         }
+      },
+         "myRoutepriv" : {
+         "Type" : "AWS::EC2::Route",
+         "Properties" : {
+            "RouteTableId" : { "Ref" : "tejasprivRouteTable" },
+            "DestinationCidrBlock" : "***.**.***.**/**",
+            "GatewayId" : { "Ref" : "TejasCfIGateway" }
+         }
+      },
+      "Ec2" : {
+            "Type" : "AWS::EC2::Instance",
+            "Properties" : {
+               "InstanceType" : "t2.micro",
+               "ImageId" : "ami-e689729e",
+               "KeyName" : "key_jumphost",
+               "NetworkInterfaces": [ { "AssociatePublicIpAddress": "true", "DeviceIndex": "0", "GroupSet": [{ "Ref" : "tejasCFInstanceSGroup" }],"SubnetId": { "Ref" : "tejaspubSubnet" } } ],
+
+            }
+        },
+      "tejasCFInstanceSGroup":{
+         "Type":"AWS::EC2::SecurityGroup",
+         "Properties":{"GroupDescription":"sample creation of tejasCFInstanceSGroup",
+            "VpcId":{"Ref":"tejVPCcf"} }
+         },
+      "ingress1":{
+         "Type":"AWS::EC2::SecurityGroupIngress",
+         "Properties":{
+            "GroupId":{"Ref":"tejasCFInstanceSGroup"},
+            "IpProtocol":"tcp",
+            "FromPort":"80",
+            "ToPort":"80",
+            "CidrIp":"***.**.***.**/**"
+         }
+      },
+      "ingress2":{
+         "Type":"AWS::EC2::SecurityGroupIngress",
+         "Properties":{
+            "GroupId":{"Ref":"tejasCFInstanceSGroup"},
+            "IpProtocol":"tcp",
+            "FromPort":"22",
+            "ToPort":"22",
+            "CidrIp":"***.**.***.**/**"
+         }
+      },
+      "egress1":{
+         "Type":"AWS::EC2::SecurityGroupEgress",
+         "Properties":{
+            "GroupId":{"Ref":"tejasCFInstanceSGroup"},
+            "IpProtocol":"-1",
+            "CidrIp":"0.0.0.0/0"
+         }
+      }
+   }
+}
